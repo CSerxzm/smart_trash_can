@@ -1,0 +1,105 @@
+#include <reg52.h>
+#include <intrins.h>
+#define uchar unsigned char
+#define uint  unsigned int
+
+sbit DQ =P3^7;	  //DS18B20接P3^7口
+unsigned char table[]={0xC0,0xF9,0xA4,0xB0,0x99,0x92,0x82,0xF8,0x80,0x90};
+//带小数点
+uchar code table1[]={0x40,0x79,0x24,0x30,0x19,0x12,0x02,0x78,0x00,0x10};
+uchar code T_COM[] = {0xfe, 0xfd, 0xfb, 0xf7};//数码管位码
+
+void delay_18B20( uint i)    //延时
+{   
+   while(--i);
+}
+void delay2(uchar n)			 //延时
+{    
+   uchar i,j;    
+   for(i=n;i>0;i--)    
+     for(j=20;j>0;j--);
+}
+
+void ds1820rst()			//初始化DS18B20
+{       
+   unsigned char x=0;   
+   DQ = 1;           //DQ复位 
+   delay_18B20(4);   //   
+   DQ = 0;           //单片机将DQ拉低     
+   delay_18B20(60); //   
+   DQ = 1;           //拉高总线  
+   delay_18B20(14);//   
+   x=DQ;            //稍做延时后 如果x=0则初始化成功 x=1则初始化失败   
+   delay_18B20(20);
+} 
+uchar ds1820rd()        	//从DS18B20读取一字节
+{ 
+   unsigned char i=0;
+   unsigned char dat = 0;
+   for (i=8;i>0;i--)	   //一位一位地读，共8位
+   {   
+     DQ = 0;     		   //给一脉冲信号
+	 dat>>=1;   		   //dat往右移一位
+	 DQ = 1;     		   //给一脉冲信号
+	 if(DQ)    
+	   dat|=0x80;    
+	   delay_18B20(4);//
+   }   return(dat);
+}
+
+void ds1820wr(uchar wdata)		 //写入一字节
+{
+   unsigned char i=0;    
+   for (i=8;i>0;i--)   
+   { 
+     DQ = 0;     
+	 DQ = wdata&0x01;     
+	 delay_18B20(5);      
+	 DQ = 1;     
+	 wdata>>=1;   
+   }
+}
+
+uint read_temp()			  //读取温度
+{   
+   float aaa;      
+   uchar a,b;      
+   ds1820rst();          
+   ds1820wr(0xcc);      	 //向DS18B20发跳过读ROM命令
+   ds1820wr(0x44);   		 //启动DS18B20进行温度转换命令，转换结果存入内部RAM
+   delay_18B20(80);       	 //延时
+   ds1820rst();          
+   ds1820wr(0xcc);      	 //向DS18B20发跳过读ROM命令
+   ds1820wr(0xbe);   		 //读取温度寄存器等（共可读9个寄存器)前两个就是温度
+   delay_18B20(80);       	 //延时
+   a=ds1820rd();      		 //读内部RAM  低位
+   b=ds1820rd();      		 //读内部RAM  高位
+   aaa=(b*256+a)*6.25;   
+   return (uint)aaa;
+}
+void disp(unsigned int i)//温度显示
+{
+   uint j;
+   uchar disdata[]={0,0,0,0};   
+   disdata[0]=i/1000;      		 //十位
+   disdata[1]=i%1000/100;      	 //个位
+   disdata[2]=i%100/10;      	//小数点后一位
+   disdata[3]=i%10;      		 //小数点后两位
+   for(j=0;j<4;j++){
+		P2=T_COM[j];
+   		if(j==1){
+			P0=table1[disdata[j]];
+		}else{
+			P0=table[disdata[j]];
+		}
+   		delay2(20);
+   } 
+}
+
+main(){
+   	uint temp; 
+	while(1){
+	     temp=read_temp();     
+		 disp(temp);
+	}
+}

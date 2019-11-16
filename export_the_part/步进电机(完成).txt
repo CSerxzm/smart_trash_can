@@ -1,0 +1,92 @@
+/*
+连线说明:IN1~IN4连接P0~P3
+*/
+#include <reg52.h>
+#include<intrins.h>
+#define uchar unsigned char
+#define uint unsigned int
+ 
+uchar code CCW[8]={0x08,0x0c,0x04,0x06,0x02,0x03,0x01,0x09};//逆时钟旋转相序表
+uchar code CW[8]={0x09,0x01,0x03,0x02,0x06,0x04,0x0c,0x08};//正时钟旋转相序表
+
+sbit K1=P3^5;  //逆转按键(原本时P3^2,但是s1损坏)
+sbit K2=P3^3;  //正转按键
+sbit K3=P3^4;  //停止按键
+sbit FMQ=P2^4; //蜂鸣器
+
+void delaynms(uint a){
+  uchar b;
+  while(a--){
+   for(b=0;b<115;b++);     //1ms基准延时程序
+  }
+}
+
+void delay500us(void){
+  int j;
+  for(j=0;j<57;j++);
+}
+
+void beep(void){//蜂鸣器响起
+  uchar t;
+  for(t=0;t<100;t++){
+   	delay500us();
+ 	FMQ=!FMQ;
+  }
+  FMQ=1;
+}
+
+void motor_ccw(void){//逆时针旋转
+  uchar i,j;
+  for(j=0;j<8;j++){//电机内部旋转一周
+	  if(K3==0){
+		    break;//如果K3按下，退出此循环
+	  }
+	  for(i=0;i<8;i++){//旋转45度
+	  	P1=CCW[i];
+		delaynms(2);//调节转速
+	  }
+  }
+}
+
+void motor_cw(void){//顺时针旋转
+  uchar i,j;
+  for(j=0;j<8;j++){//电机内部旋转一周
+	  if(K3==0){
+		    break;//如果K3按下，退出此循环
+	  }
+	  for(i=0;i<8;i++){//旋转45度
+	  	P1=CW[i];
+		delaynms(2);//调节转速
+	  }
+  }
+}
+
+void main(void)
+{
+	 uchar r;
+	 uchar N=16;//因为步进电机是减速步进电机，减速比的1/64，64为旋转360，16为旋转90度
+	 while(1){
+	   if(K1==0){
+	      beep();
+		  for(r=0;r<N;r++){
+		    motor_ccw();  //电机逆转
+		    if(K3==0){
+		      beep();
+		      break;
+		    }
+		  }
+	   }
+	   else if(K2==0){
+		  for(r=0;r<N;r++){
+		    motor_cw();  //电机正转
+		    if(K3==0){
+		      break;
+		    }
+		  }
+		  beep();
+	   }
+	   else{
+	   	   P1=0xf0;    //电机停止
+	   }
+	 }
+}          

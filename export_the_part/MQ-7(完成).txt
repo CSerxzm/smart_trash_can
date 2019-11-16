@@ -1,0 +1,31 @@
+#include <reg52.h>
+#include<intrins.h>
+#define uchar unsigned char
+#define uint unsigned int
+ 
+
+sbit LED =P1^0;
+sbit DOUT =P2^0;
+
+void delay(void)   //误差 0us
+{
+    unsigned char a,b,c;
+    for(c=20;c>0;c--)
+        for(b=20;b>0;b--)
+            for(a=248;a>0;a--);
+}
+
+void main(void)
+{
+	 while(1)
+	 {
+		 LED=1;
+		 if(DOUT==0)//浓度过高
+		 {
+		 	delay();//延时抗干扰
+			if(DOUT==0){
+				LED=0;
+			}
+		 }
+	 }
+} 

@@ -1,0 +1,48 @@
+#include <reg52.h>
+#include<intrins.h>
+#define uchar unsigned char
+#define uint unsigned int
+ 
+sbit FMQ=P2^4; //蜂鸣器
+sbit HCR501 =P0^0;
+sbit LED =P1^2;
+sbit LED1 =P1^3;
+
+void delay500us(void)   //误差 0us
+{
+    unsigned char a,b;
+    for(b=71;b>0;b--)
+        for(a=2;a>0;a--);
+}
+
+void delay(void) //延时2.5s
+{
+    unsigned char a,b;
+    for(b=227;b>0;b--)
+        for(a=4;a>0;a--);
+}
+
+void beep(void)//蜂鸣器响起
+{
+  uchar t;
+  for(t=0;t<50;t++)
+  {
+   	delay500us();
+ 	FMQ=!FMQ;   //产生脉冲
+  }
+  FMQ=1;    //关闭蜂鸣器
+}
+void main(void)
+{
+	 while(1)
+	 {
+	   if(HCR501 ==1){//人在
+	   		LED=0;//灯亮
+			beep();
+			delay();
+	   }
+	   else{  
+	   		LED=1;//灯灭
+	   }
+	 }
+} 

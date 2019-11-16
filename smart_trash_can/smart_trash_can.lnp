@@ -1,0 +1,4 @@
+"STARTUP.obj",
+"all.obj" 
+TO "smart_trash_can" 
+RAMSIZE(256) 
