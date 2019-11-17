@@ -19,8 +19,8 @@ uchar code CW[8]={0x09,0x01,0x03,0x02,0x06,0x04,0x0c,0x08};//正时钟旋转相�
 uchar table[]={0xC0,0xF9,0xA4,0xB0,0x99,0x92,0x82,0xF8,0x80,0x90};
 //带小数点
 uchar code table1[]={0x40,0x79,0x24,0x30,0x19,0x12,0x02,0x78,0x00,0x10};
-uchar code T_COM[] = {0xfe, 0xfd, 0xfb};//数码管位码
-uchar disbuff[3]={0,0,0};
+uchar code T_COM[] = {0xfe, 0xfd,0xfb,0xf7};//数码管位码
+uchar disbuff[4]={0,0,0,0};
 uint temp=0;//温度值 
 sbit OUT0=P2^7;//距离感应人是否靠近
 sbit OUT1=P2^6;//满溢检测，当满了后蜂鸣器响起
@@ -141,9 +141,13 @@ uchar read_byte()
 }
 
 void convert(void){ 
-   disbuff[0]=temp/100;      		//十位
-   disbuff[1]=temp%100/10;      //个位
-   disbuff[2]=temp%10/10;      	//小数点后一位
+   //disbuff[0]=temp/100;      		//十位
+   //disbuff[1]=temp%100/10;      //个位
+   //disbuff[2]=temp%10/10;      	//小数点后一位
+	 disbuff[0]=temp/1000;      		 //十位
+   disbuff[1]=temp%1000/100;      	 //个位
+   disbuff[2]=temp%100/10;      	//小数点后一位
+	 disbuff[3]=temp%10;      		 //小数点后两位
 }
 void Display(void)//扫描数码管
 {
@@ -155,7 +159,7 @@ void Display(void)//扫描数码管
 		P0=table1[disbuff[j]];
 	}
 	j++;
-	if(j==3)
+	if(j==4)
 		j=0;
 }
 void  zd3() interrupt 3//T1中断用来扫描数码管
@@ -180,8 +184,9 @@ void  zd1() interrupt 1//T0中断用来测温度
 	M = read_byte();
 	i = M;
 	i <<= 8;
-	i |= L;						
-	temp = i * 0.0625 * 10 + 0.5;
+	i |= L;
+	//temp = i * 0.0625 * 10 + 0.5;
+	temp = i *6.25;
 	convert();
 }
 /*------------------------主函数------------------------*/
@@ -225,7 +230,7 @@ void main(void){
 		}else{
 			P1=0xf0;    //电机停止
 		}
-		if(DOUT==0||temp>350)//有害气体浓度过高或温度过高
+		if(DOUT==0||temp>3500)//有害气体浓度过高或温度过高
 		{
 		 	delay500us();//延时抗干扰
 			if(DOUT==0||temp>350){
