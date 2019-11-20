@@ -141,17 +141,14 @@ uchar read_byte()
 }
 
 void convert(void){ 
-   //disbuff[0]=temp/100;      		//十位
-   //disbuff[1]=temp%100/10;      //个位
-   //disbuff[2]=temp%10/10;      	//小数点后一位
-	 disbuff[0]=temp/1000;      		 //十位
-   disbuff[1]=temp%1000/100;      	 //个位
-   disbuff[2]=temp%100/10;      	//小数点后一位
-	 disbuff[3]=temp%10;      		 //小数点后两位
+	disbuff[0]=temp/1000;      		 //十位
+	disbuff[1]=temp%1000/100;      	 //个位
+	disbuff[2]=temp%100/10;      	//小数点后一位
+	disbuff[3]=temp%10;      		 //小数点后两位
 }
 void Display(void)//扫描数码管
 {
-	P0=0xff;
+	P0=0xFF;
 	P2=T_COM[j];
   if(j!=1){
 		P0=table[disbuff[j]];
@@ -164,8 +161,8 @@ void Display(void)//扫描数码管
 }
 void  zd3() interrupt 3//T1中断用来扫描数码管
 {
-  TH1 = 0x0FE;
-  TL1 = 0x0C;
+	TH1 = 0x0FE;
+	TL1 = 0x0C;
 	Display(); 
 }
 void  zd1() interrupt 1//T0中断用来测温度
@@ -173,7 +170,7 @@ void  zd1() interrupt 1//T0中断用来测温度
 	uint i;
 	uchar L, M;
 	TH0 = 0x3C;//测温度
-  TL0 = 0x0B0;
+	TL0 = 0x0B0;
 	ds_init();//初始化DS18B20
 	write_byte(0xcc);//发送跳跃ROM指令
 	write_byte(0x44);//发送温度转换指令
@@ -186,7 +183,7 @@ void  zd1() interrupt 1//T0中断用来测温度
 	i <<= 8;
 	i |= L;
 	//temp = i * 0.0625 * 10 + 0.5;
-	temp = i *6.25;
+	temp = i *6.25;//temp为实际温度的100倍
 	convert();
 }
 /*------------------------主函数------------------------*/
@@ -206,8 +203,8 @@ void main(void){
 
 	EA=1;			   //开启总中断
 	
-	//延时三秒，温度采集完成
-	delayS(3);
+	//延时1秒，温度采集完成
+	delayS(1);
 	
 	while(1){
 	 	if(OUT0==0){
