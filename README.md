@@ -10,3 +10,5 @@ C51单片机(SST89E516RD)、红外循迹避障传感器、有源蜂鸣器、DS18
 1. design_image：设计文件，即isis工程。
 2. export_the_part：每个模块单独测试code。
 3. smart_trash_can：智能垃圾箱工程，编译后下载至c51芯片中，运行即可。
+### 实物视频
+[视频跳转-B站](https://www.bilibili.com/video/BV1BJ41127wG)
